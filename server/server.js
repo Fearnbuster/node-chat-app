@@ -23,14 +23,14 @@ io.on('connection', (socket)=>{
     console.log('A user disconnected');
   });
 
-  socket.on('createMessage', function(newMessage){
-    console.log('Create message', newMessage);
-  });
+  socket.on('createMessage', function(message){
+    console.log('Create message', message);
 
-  socket.emit('newMessage', {
-    from: 'Seth',
-    text: 'Hello',
-    createdAt: 123
+    io.emit('newMessage', {
+      from: message.from,
+      text: message.text,
+      createdAt: new Date().getTime()
+    });
   });
 });
 
