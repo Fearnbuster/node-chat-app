@@ -25,6 +25,8 @@ let roomsManager = new Rooms();
 app.use(express.static(publicPath));
 
 io.on('connection', (socket)=>{
+  socket.emit('updateRoomsList', roomsManager.listAllRooms());
+
   socket.on('join', (params, callback)=>{
     const body = _.pick(params, ['name', 'room']);
 
