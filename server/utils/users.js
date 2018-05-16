@@ -29,12 +29,7 @@ class Users {
   getUser(id){
     const user = this.users.find((user)=> user.id === id);
 
-    if(user) {
-      return user;
-    }
-    else {
-      return undefined;
-    }
+    return user ? user : undefined;
   }
 
   getUsersInRoom(room){
@@ -42,6 +37,17 @@ class Users {
     let namesArray = users.map((user)=> user.name);
 
     return namesArray;
+  }
+
+  nameIsTaken(name){
+    const user = this.users.find((user)=> user.name === name);
+
+    if(user) {
+      return true;
+    }
+    else {
+      return false;
+    }
   }
 };
 

@@ -14,18 +14,33 @@
       <div class="form-field">
         <h3>Join a Chat Room</h3>
       </div>
+
       <div class="form-field">
         <label for="name">Display name</label>
         <input type="text" name="name" autofocus/>
       </div>
+
       <div class="form-field">
         <label for="room">Room name</label>
-        <input type="text" name="room"/>
+        <input type="text" name="room" list="rooms" autocomplete="off"/>
+
+        <datalist id="rooms">
+        </datalist>
       </div>
       <div class="form-field">
         <button>Join</button>
       </div>
     </form>
   </div>
+
+  <script
+  src="https://code.jquery.com/jquery-3.3.1.min.js"
+  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+  crossorigin="anonymous"></script>
+  <script src="/js/libs/moment.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/libs/moustache.js"></script>
+  <script src="/js/libs/deparam.js"></script>
+  <script src="/js/index.js"></script>
 </body>
 </html>

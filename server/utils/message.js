@@ -13,4 +13,13 @@ const generateLocationMessage = (from, latitude, longitude)=>{
   };
 };
 
-module.exports = {generateMessage, generateLocationMessage};
+const formatString = (message)=>{
+  if(message.length > 0) { 
+    return message.replace(/\s+/g, ' ').trim();
+  }
+  else {
+    return '';
+  }
+};
+
+module.exports = {generateMessage, generateLocationMessage, formatString};

@@ -5,39 +5,62 @@ const express = require('express');
 const http = require('http');
 const path = require('path');
 const socketIO = require('socket.io');
+const _ = require('lodash');
 
 const port = process.env.PORT || 3000;
 const publicPath = path.join(__dirname, '../public');
 
-const { generateMessage, generateLocationMessage } = require('./utils/message');
+const { generateMessage, generateLocationMessage, formatString } = require('./utils/message');
 const { isRealString } = require('./utils/validation');
 const { Users } = require('./utils/users');
+const { Rooms } = require('./utils/rooms');
 
 let app = express();
 let server = http.createServer(app);
 let io = socketIO(server);
 let usersManger = new Users();
+let roomsManager = new Rooms();
 
 // Static folder:
 app.use(express.static(publicPath));
 
 io.on('connection', (socket)=>{
-  console.log('New user connected');
-
   socket.on('join', (params, callback)=>{
-    if(!isRealString(params.name) || !isRealString(params.room)) {
+    const body = _.pick(params, ['name', 'room']);
+
+    if(!body.name, !body.room) {
+      return callback('Name and room name are required.');
+    }
+  
+    const name = formatString(body.name);
+    const room = formatString(body.room).toLowerCase();
+
+    if(!isRealString(name) || !isRealString(room)) {
       return callback('Name and room name are required.');
     }
 
-    socket.join(params.room);
-    usersManger.removeUser(socket.id);
-    usersManger.addUser(socket.id, params.name, params.room);
+    if(usersManger.nameIsTaken(name)) {
+      return callback(`The username '${name}' is already in use`);
+    }
 
-    io.to(params.room).emit('updateUserList', usersManger.getUsersInRoom(params.room));
+    socket.join(room);
+
+    let oldUser = usersManger.removeUser(socket.id);
+
+    if(oldUser) {
+      roomsManager.userLeft(oldUser.room);
+    }
+
+    usersManger.addUser(socket.id, name, room);
+    roomsManager.userJoined(room);
+
+    io.to(room).emit('updateUserList', usersManger.getUsersInRoom(room));
 
     socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
 
-    socket.broadcast.to(params.room).emit('newMessage', generateMessage('Admin', `${params.name} has joined`));
+    socket.broadcast.to(room).emit('newMessage', generateMessage('Admin', `${name} has joined`));
+
+    io.emit('updateRoomsList', roomsManager.listAllRooms());
 
     callback();
   });
@@ -48,6 +71,10 @@ io.on('connection', (socket)=>{
     if(user) {
       io.to(user.room).emit('updateUserList', usersManger.getUsersInRoom(user.room));
       io.to(user.room).emit('newMessage', generateMessage('Admin', `${user.name} has left.`));
+
+      roomsManager.userLeft(user.room);
+
+      io.emit('updateRoomsList', roomsManager.listAllRooms());
     }
   });
 
